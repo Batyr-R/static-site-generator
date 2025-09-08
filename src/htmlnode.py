@@ -1,4 +1,3 @@
-from src.textnode import TextNode
 from textnode import TextType
 
 class HTMLNode:
