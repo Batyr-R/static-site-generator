@@ -33,6 +33,5 @@ class TestTextNode(unittest.TestCase):
         node2 = ParentNode("div", [child_node2])
         self.assertNotEqual(node, node2)
 
-
 if __name__ == "__main__":
     unittest.main()
