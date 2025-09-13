@@ -1,5 +1,4 @@
 import re
-from typing_extensions import NewType
 
 from textnode import TextType, TextNode
 
