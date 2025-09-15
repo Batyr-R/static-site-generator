@@ -1,6 +1,6 @@
 from enum import Enum
 
-from htmlnode import HTMLNode, ParentNode, text_node_to_html_node
+from htmlnode import ParentNode, text_node_to_html_node
 from inline_markdown import text_to_textnodes
 from textnode import TextNode, TextType
 
@@ -81,35 +81,47 @@ def markdown_to_html_node(markdown):
     for b in blocks:
         block_type = block_to_block_type(b)
         if block_type == BlockType.HEADING:
-            hashes_count = len(b[:b.index(" ")])
-            block_node = ParentNode(f"h{hashes_count}", text_to_children(b[hashes_count+1:]))
+            level = 0
+            for char in b:
+                if char == "#":
+                    level += 1
+                else:
+                    break
+            text = b[level + 1:]
+            block_node = ParentNode(f"h{level}", text_to_children(text))
 
         elif block_type == BlockType.QUOTE:
             lines = b.split("\n")
-            lines_no_char = []
-            for l in lines:
-                lines_no_char.append(l[1:])
-            block = "\n".join(lines_no_char)
-            block_node = ParentNode("blockquote", text_to_children(block))
+            new_lines = []
+            for line in lines:
+                new_lines.append(line.lstrip(">").strip())
+            content = " ".join(new_lines)
+            block_node = ParentNode("blockquote", text_to_children(content))
 
         elif block_type == BlockType.UNORDERED_LIST:
             lines = b.split("\n")
-            lines_no_char = []
-            for l in lines:
-                lines_no_char.append(l[2:])
-            block = "\n".join(lines_no_char)
-            block_node = ParentNode("ul", text_to_children(block))
+            html_items = []
+            for line in lines:
+                text = line[2:]
+                children = text_to_children(text)
+                html_items.append(ParentNode("li", children))
+            block_node = ParentNode("ul", html_items)
 
         elif block_type == BlockType.ORDERED_LIST:
             lines = b.split("\n")
-            lines_no_char = []
-            for l in lines:
-                lines_no_char.append(l[l.index(" ")+1:])
-            block = "\n".join(lines_no_char)
-            block_node = ParentNode("ol", text_to_children(block))
+            html_items = []
+            for line in lines:
+                text = line[3:]
+                children = text_to_children(text)
+                html_items.append(ParentNode("li", children))
+            block_node = ParentNode("ol", html_items)
 
         elif block_type == BlockType.CODE:
-            block_node = ParentNode("pre", text_node_to_html_node((b, TextType.CODE)))
+            code_text = b[4:-3]
+            text_node = TextNode(code_text, TextType.TEXT)
+            code_html_node = text_node_to_html_node(text_node)
+            code_node = ParentNode("code", [code_html_node])
+            block_node = ParentNode("pre", [code_node])
 
         else:
             block_node = ParentNode("p", text_to_children(b))
